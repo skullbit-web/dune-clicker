@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dune Clicker Leaderboard</title>
+<style>
+body {
+    font-family: "Trebuchet MS", sans-serif;
+    background: #0e0e0e;
+    color: #f4e4b1;
+    text-align: center;
+    padding: 20px;
+}
+table {
+    width: 70%;
+    margin: auto;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+th, td {
+    border: 1px solid #ff7f2a;
+    padding: 10px;
+}
+th {
+    background: #ff7f2a;
+    color: #0e0e0e;
+}
+a { color: #ff7f2a; display:block; margin-top:20px; }
+</style>
+</head>
+<body>
+<h1>🌍 Spice Mining Leaderboard</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Player</th>
+      <th>Score</th>
+    </tr>
+  </thead>
+  <tbody id="leaderboardTable"></tbody>
+</table>
+<a href="index.html">⬅ Back to Game</a>
+
+<script>
+async function loadLeaderboard() {
+    try {
+        const res = await fetch("https://dune-clicker-api.vercel.app/leaderboard");
+        const data = await res.json();
+        const tbody = document.getElementById("leaderboardTable");
+        tbody.innerHTML = "";
+        data.forEach((entry, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${entry.name}</td>
+              <td>${entry.score}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    } catch (err) {
+        console.error(err);
+    }
+}
+loadLeaderboard();
+</script>
+</body>
+</html>
