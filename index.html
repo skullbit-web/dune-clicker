@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dune Clicker</title>
+<style>
+body {
+    font-family: "Trebuchet MS", sans-serif;
+    background: #0e0e0e;
+    color: #f4e4b1;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-height: 100vh;
+}
+/* Left Panel */
+.left-panel {
+    flex: 0 0 350px;
+    padding: 40px 20px;
+    text-align: center;
+}
+h1 {
+    font-size: 1.8rem;
+    color: #ff7f2a;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+#resourceCount {
+    font-size: 3rem;
+    font-weight: bold;
+    margin: 10px 0;
+}
+#perSecond {
+    color: #d6d6d6;
+    margin-bottom: 30px;
+}
+#resourceContainer {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, #ff7f2a, #800000);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px #ff7f2a66;
+    cursor: pointer;
+    transition: transform 0.1s;
+    user-select: none;
+}
+#resourceContainer:active { transform: scale(0.95); }
+#resourceImg {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    border-radius: 12px;
+}
+#resourceName { font-weight: bold; color: #ff7f2a; margin-bottom: 5px; }
+#clickInfo { color: #d6d6d6; font-size: 0.85rem; }
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 40px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+.main-content h2 { font-size: 2rem; color: #ff7f2a; }
+.stats-panel {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.stats-row { display: flex; gap: 50px; }
+.stat-item { font-size: 1.2rem; }
+.stat-item h4 { margin-bottom: 5px; color: #ff7f2a; }
+.stat-item span { font-weight: bold; font-size: 1.5rem; }
+
+/* Right Panel */
+.right-panel {
+    flex: 0 0 350px;
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-left: 1px solid #333;
+    overflow-y: auto;
+    max-height: 90vh;
+    scrollbar-width: none;
+}
+.right-panel::-webkit-scrollbar { display: none; }
+.right-panel h2 { color: #ff7f2a; font-size: 1.5rem; text-align: center; margin-bottom: 20px; }
+
+.upgrade-item {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.upgrade-info { flex-grow: 1; }
+.upgrade-info h3 { margin-top: 0; color: #f4e4b1; }
+.upgrade-info p { font-size: 0.9rem; color: #ccc; }
+.upgrade-info p.upgrade-stats { margin-top: 5px; font-size: 0.9rem; color: #ff7f2a; font-weight: bold; }
+
+.upgrade-item button {
+    background-color: #ff7f2a;
+    color: #0e0e0e;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+.upgrade-item button:disabled { background-color: #888; cursor: not-allowed; }
+.upgrade-item button:hover:not(:disabled) { background-color: #ff9955; }
+.upgrade-cost { font-weight: bold; color: #0e0e0e; }
+</style>
+</head>
+<body>
+
+<div class="left-panel">
+<h1>ARRAKIS MINING</h1>
+<div id="resourceCount">0</div>
+<div id="perSecond">per second: 0</div>
+<div id="resourceContainer">
+    <img id="resourceImg" src="https://static.wikia.nocookie.net/duneawakening/images/e/e0/T_ui_iconresourceplantfiberr_d.png" alt="Resource">
+</div>
+<div id="resourceName">Water</div>
+<div id="clickInfo">Clicks: 0 | Power: 12</div>
+</div>
+
+<div class="main-content">
+<h2>THE SPICE MUST FLOW</h2>
+<p>Control the spice, control the universe. Build your mining empire on Arrakis.</p>
+<div class="stats-panel">
+    <div class="stats-row">
+        <div class="stat-item">
+            <h4>Total Resources</h4>
+            <span id="totalResourcesDisplay">0</span>
+        </div>
+        <div class="stat-item">
+            <h4>Buildings Owned</h4>
+            <span id="buildingsOwnedDisplay">0</span>
+        </div>
+    </div>
+</div>
+<div style="margin-top:20px;">
+  <button onclick="saveGame()">💾 Save</button>
+  <button onclick="submitScore()">🌍 Submit Score</button>
+  <br><br>
+  <a href="leaderboard.html" style="color:#ff7f2a;">View Leaderboard</a>
+</div>
+</div>
+
+<div class="right-panel">
+<h2>BUILDINGS</h2>
+
+<!-- Example building (repeat for all) -->
+<div class="upgrade-item" data-building="harvester">
+    <div class="upgrade-info">
+        <h3>Harvester</h3>
+        <p>Automatically clicks the spice harvester for you.</p>
+        <p class="upgrade-stats">Owned: <span id="ownedHarvester">0</span> | +<span id="gainHarvester">1</span>/sec</p>
+    </div>
+    <button class="buy-upgrade">Buy for <span class="upgrade-cost" id="costHarvester">100</span></button>
+</div>
+
+<!-- (other building divs remain same as your code) -->
+
+</div>
+
+<script>
+// === Resources & Game State ===
+const resources = [
+    {name:"Water", img:"https://static.wikia.nocookie.net/duneawakening/images/e/e0/T_ui_iconresourceplantfiberr_d.png"},
+    {name:"Spice Melange", img:"https://static.wikia.nocookie.net/duneawakening/images/a/ac/T_ui_iconresourcerefinedspicer_d.png"},
+    {name:"Aluminum Bars", img:"https://static.wikia.nocookie.net/duneawakening/images/5/52/T_ui_iconresourcealuminiumbarr_d.png"},
+    {name:"Microsandwich Fiber", img:"https://static.wikia.nocookie.net/duneawakening/images/7/7c/T_ui_iconresourcemicrosandwichfabricr_d.png"},
+    {name:"Plastanium Ingot", img:"https://static.wikia.nocookie.net/duneawakening/images/c/c0/T_ui_iconresourceplastaniumingotr_d.png"},
+    {name:"Copper Ore", img:"https://static.wikia.nocookie.net/duneawakening/images/c/c4/T_ui_iconresourcecopperr_d.png"},
+    {name:"Diamondine Dust", img:"https://static.wikia.nocookie.net/duneawakening/images/f/f6/T_ui_iconresourcediamondinedustr_d.png"}
+];
+const preloadedImages = {};
+resources.forEach(r=>{const img=new Image(); img.src=r.img; preloadedImages[r.name]=img;});
+
+let resourcesTotal = 0, power = 12, actualClicks = 0;
+const buildings = {
+    harvester:       { name: "Harvester", cost: 100, owned: 0, gain: 1 },
+    stillsuit:       { name: "Stillsuit Factory", cost: 500, owned: 0, gain: 5 },
+    condenser:       { name: "Water Condenser", cost: 2000, owned: 0, gain: 15 },
+    bloodPurifier:   { name: "Blood Purifier", cost: 5000, owned: 0, gain: 35 },
+    fuelGenerator:   { name: "Fuel Generator", cost: 7000, owned: 0, gain: 50 },
+    researchStation: { name: "Research Station", cost: 10000, owned: 0, gain: 80 },
+    oreRefinery:     { name: "Ore Refinery", cost: 15000, owned: 0, gain: 120 },
+    windtrap:        { name: "Windtrap", cost: 3000, owned: 0, gain: 10 }
+};
+
+// DOM Refs
+const resourceCountEl=document.getElementById("resourceCount");
+const perSecondEl=document.getElementById("perSecond");
+const resourceContainer=document.getElementById("resourceContainer");
+const resourceImg=document.getElementById("resourceImg");
+const resourceName=document.getElementById("resourceName");
+const clickInfo=document.getElementById("clickInfo");
+const totalResourcesDisplay=document.getElementById("totalResourcesDisplay");
+const buildingsOwnedDisplay=document.getElementById("buildingsOwnedDisplay");
+
+// Helpers
+function formatNumber(n){return n>=1000?(n/1000).toFixed(2)+"K":n.toFixed(0);}
+
+// Display Update
+function updateDisplay(){
+    resourceCountEl.textContent = formatNumber(resourcesTotal);
+    clickInfo.textContent = `Clicks: ${actualClicks} | Power: ${power}`;
+    totalResourcesDisplay.textContent = formatNumber(resourcesTotal);
+    let totalOwned=0;
+    for(const key in buildings){
+        totalOwned+=buildings[key].owned;
+        const ucKey = key.charAt(0).toUpperCase()+key.slice(1);
+        if(document.getElementById(`owned${ucKey}`))
+            document.getElementById(`owned${ucKey}`).textContent = buildings[key].owned;
+        if(document.getElementById(`cost${ucKey}`))
+            document.getElementById(`cost${ucKey}`).textContent = formatNumber(buildings[key].cost);
+        const btn = document.querySelector(`.upgrade-item[data-building="${key}"] .buy-upgrade`);
+        if(btn) btn.disabled = resourcesTotal < buildings[key].cost;
+    }
+    buildingsOwnedDisplay.textContent = totalOwned;
+}
+
+// Passive gain
+function getPassivePerSecond(){
+    let sum = 0;
+    for(const key in buildings) sum += buildings[key].owned * buildings[key].gain;
+    return sum;
+}
+function addPassiveResources(){ resourcesTotal += getPassivePerSecond() * 0.1; }
+
+// CPS
+let lastResources = resourcesTotal;
+let lastTime = Date.now();
+function updateCPS(){
+    const now = Date.now();
+    const delta = (now - lastTime) / 1000;
+    const gained = resourcesTotal - lastResources;
+    const cps = gained / delta;
+    lastResources = resourcesTotal;
+    lastTime = now;
+    perSecondEl.textContent = `per second: ${formatNumber(cps)}`;
+    updateDisplay();
+}
+
+// Intervals
+setInterval(()=>{addPassiveResources();},100);
+setInterval(updateCPS,200);
+
+// Click resource
+resourceContainer.addEventListener("click",()=>{
+    const choice=resources[Math.floor(Math.random()*resources.length)];
+    resourceImg.src = preloadedImages[choice.name].src;
+    resourceImg.alt = choice.name;
+    resourceName.textContent = choice.name;
+    resourcesTotal += power;
+    actualClicks++;
+    updateDisplay();
+});
+
+// Buy upgrades
+document.querySelectorAll('.buy-upgrade').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+        const key = e.target.closest('.upgrade-item').dataset.building;
+        const building = buildings[key];
+        if(resourcesTotal >= building.cost){
+            resourcesTotal -= building.cost;
+            building.owned++;
+            building.cost = Math.floor(building.cost*1.15);
+            updateDisplay();
+        }
+    });
+});
+
+// === Save / Load ===
+function saveGame() {
+    const state = { resourcesTotal, power, actualClicks, buildings };
+    localStorage.setItem("duneClickerSave", JSON.stringify(state));
+}
+function loadGame() {
+    const save = localStorage.getItem("duneClickerSave");
+    if (save) {
+        const state = JSON.parse(save);
+        resourcesTotal = state.resourcesTotal || 0;
+        power = state.power || 12;
+        actualClicks = state.actualClicks || 0;
+        if (state.buildings) {
+            for (const key in state.buildings) {
+                if (buildings[key]) {
+                    buildings[key].owned = state.buildings[key].owned;
+                    buildings[key].cost = state.buildings[key].cost;
+                }
+            }
+        }
+        updateDisplay();
+    }
+}
+setInterval(saveGame, 10000);
+window.addEventListener("beforeunload", saveGame);
+loadGame();
+
+// === Leaderboard ===
+async function submitScore() {
+    const playerName = prompt("Enter your name for the leaderboard:");
+    if (!playerName) return;
+    try {
+        const res = await fetch("https://dune-clicker-api.vercel.app/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: playerName, score: Math.floor(resourcesTotal) })
+        });
+        if (res.ok) alert("Score submitted!");
+        else alert("Error submitting score.");
+    } catch (err) {
+        console.error(err);
+        alert("Could not connect to leaderboard API.");
+    }
+}
+
+// Init
+updateDisplay();
+</script>
+</body>
+</html>
