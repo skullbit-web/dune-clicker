@@ -47,6 +47,8 @@ h1 {
     cursor: pointer;
     transition: transform 0.1s;
     user-select: none;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
 }
 #resourceContainer:active { transform: scale(0.95); }
 #resourceImg {
@@ -92,9 +94,10 @@ h1 {
     border-left: 1px solid #333;
     overflow-y: auto;
     max-height: 90vh;
-    scrollbar-width: none;
+    scrollbar-width: none; /* Firefox */
 }
-.right-panel::-webkit-scrollbar { display: none; }
+.right-panel::-webkit-scrollbar { display: none; } /* Chrome, Safari */
+
 .right-panel h2 { color: #ff7f2a; font-size: 1.5rem; text-align: center; margin-bottom: 20px; }
 
 .upgrade-item {
@@ -138,7 +141,7 @@ h1 {
     <img id="resourceImg" src="https://static.wikia.nocookie.net/duneawakening/images/e/e0/T_ui_iconresourceplantfiberr_d.png" alt="Resource">
 </div>
 <div id="resourceName">Water</div>
-<div id="clickInfo">Clicks: 0 | Power: 12</div>
+<div id="clickInfo">Clicks: 0 | Power: 30</div>
 </div>
 
 <div class="main-content">
@@ -156,18 +159,12 @@ h1 {
         </div>
     </div>
 </div>
-<div style="margin-top:20px;">
-  <button onclick="saveGame()">💾 Save</button>
-  <button onclick="submitScore()">🌍 Submit Score</button>
-  <br><br>
-  <a href="leaderboard.html" style="color:#ff7f2a;">View Leaderboard</a>
-</div>
 </div>
 
 <div class="right-panel">
 <h2>BUILDINGS</h2>
 
-<!-- Example building (repeat for all) -->
+<!-- 8 buildings -->
 <div class="upgrade-item" data-building="harvester">
     <div class="upgrade-info">
         <h3>Harvester</h3>
@@ -177,12 +174,72 @@ h1 {
     <button class="buy-upgrade">Buy for <span class="upgrade-cost" id="costHarvester">100</span></button>
 </div>
 
-<!-- (other building divs remain same as your code) -->
+<div class="upgrade-item" data-building="stillsuit">
+    <div class="upgrade-info">
+        <h3>Stillsuit Factory</h3>
+        <p>Produces stillsuits that recycle water into valuable resources.</p>
+        <p class="upgrade-stats">Owned: <span id="ownedStillsuit">0</span> | +<span id="gainStillsuit">5</span>/sec</p>
+    </div>
+    <button class="buy-upgrade">Buy for <span class="upgrade-cost" id="costStillsuit">500</span></button>
+</div>
 
+<div class="upgrade-item" data-building="condenser">
+    <div class="upgrade-info">
+        <h3>Water Condenser</h3>
+        <p>Extracts moisture from the air to generate a steady flow of resources.</p>
+        <p class="upgrade-stats">Owned: <span id="ownedCondenser">0</span> | +<span id="gainCondenser">20</span>/sec</p>
+    </div>
+    <button class="buy-upgrade">Buy for <span class="upgrade-cost" id="costCondenser">2000</span></button>
+</div>
+
+<div class="upgrade-item" data-building="bloodPurifier">
+    <div class="upgrade-info">
+        <h3>Blood Purifier</h3>
+        <p>Converts harvested blood into water.</p>
+        <p class="upgrade-stats">Owned: <span id="ownedBloodPurifier">0</span> | +<span id="gainBloodPurifier">10</span>/sec</p>
+    </div>
+    <button class="buy-upgrade">Buy for <span class="upgrade-cost" id="costBloodPurifier">5000</span></button>
+</div>
+
+<div class="upgrade-item" data-building="fuelGenerator">
+    <div class="upgrade-info">
+        <h3>Fuel Generator</h3>
+        <p>Provides power to your base, essential for operations.</p>
+        <p class="upgrade-stats">Owned: <span id="ownedFuelGenerator">0</span> | +<span id="gainFuelGenerator">15</span>/sec</p>
+    </div>
+    <button class="buy-upgrade">Buy for <span class="upgrade-cost" id="costFuelGenerator">7000</span></button>
+</div>
+
+<div class="upgrade-item" data-building="researchStation">
+    <div class="upgrade-info">
+        <h3>Research Station</h3>
+        <p>Unlocks advanced technologies and upgrades.</p>
+        <p class="upgrade-stats">Owned: <span id="ownedResearchStation">0</span> | +<span id="gainResearchStation">25</span>/sec</p>
+    </div>
+    <button class="buy-upgrade">Buy for <span class="upgrade-cost" id="costResearchStation">10000</span></button>
+</div>
+
+<div class="upgrade-item" data-building="oreRefinery">
+    <div class="upgrade-info">
+        <h3>Ore Refinery</h3>
+        <p>Processes raw ores into refined materials.</p>
+        <p class="upgrade-stats">Owned: <span id="ownedOreRefinery">0</span> | +<span id="gainOreRefinery">30</span>/sec</p>
+    </div>
+    <button class="buy-upgrade">Buy for <span class="upgrade-cost" id="costOreRefinery">15000</span></button>
+</div>
+
+<div class="upgrade-item" data-building="windtrap">
+    <div class="upgrade-info">
+        <h3>Windtrap</h3>
+        <p>Generates water by harnessing wind energy.</p>
+        <p class="upgrade-stats">Owned: <span id="ownedWindtrap">0</span> | +<span id="gainWindtrap">5</span>/sec</p>
+    </div>
+    <button class="buy-upgrade">Buy for <span class="upgrade-cost" id="costWindtrap">3000</span></button>
+</div>
 </div>
 
 <script>
-// === Resources & Game State ===
+// Resources
 const resources = [
     {name:"Water", img:"https://static.wikia.nocookie.net/duneawakening/images/e/e0/T_ui_iconresourceplantfiberr_d.png"},
     {name:"Spice Melange", img:"https://static.wikia.nocookie.net/duneawakening/images/a/ac/T_ui_iconresourcerefinedspicer_d.png"},
@@ -195,6 +252,7 @@ const resources = [
 const preloadedImages = {};
 resources.forEach(r=>{const img=new Image(); img.src=r.img; preloadedImages[r.name]=img;});
 
+// Game state
 let resourcesTotal = 0, power = 12, actualClicks = 0;
 const buildings = {
     harvester:       { name: "Harvester", cost: 100, owned: 0, gain: 1 },
@@ -207,7 +265,7 @@ const buildings = {
     windtrap:        { name: "Windtrap", cost: 3000, owned: 0, gain: 10 }
 };
 
-// DOM Refs
+// DOM refs
 const resourceCountEl=document.getElementById("resourceCount");
 const perSecondEl=document.getElementById("perSecond");
 const resourceContainer=document.getElementById("resourceContainer");
@@ -220,7 +278,30 @@ const buildingsOwnedDisplay=document.getElementById("buildingsOwnedDisplay");
 // Helpers
 function formatNumber(n){return n>=1000?(n/1000).toFixed(2)+"K":n.toFixed(0);}
 
-// Display Update
+// --- SAVE/LOAD ---
+function saveGame(){
+    const data = { resourcesTotal, power, actualClicks, buildings };
+    localStorage.setItem("duneClickerSave", JSON.stringify(data));
+}
+function loadGame(){
+    const saved = localStorage.getItem("duneClickerSave");
+    if(saved){
+        try {
+            const data = JSON.parse(saved);
+            resourcesTotal = data.resourcesTotal || 0;
+            power = data.power || 12;
+            actualClicks = data.actualClicks || 0;
+            for(const key in buildings){
+                if(data.buildings && data.buildings[key]){
+                    buildings[key].owned = data.buildings[key].owned;
+                    buildings[key].cost = data.buildings[key].cost;
+                }
+            }
+        } catch(e){ console.error("Failed to load save", e); }
+    }
+}
+
+// Display update
 function updateDisplay(){
     resourceCountEl.textContent = formatNumber(resourcesTotal);
     clickInfo.textContent = `Clicks: ${actualClicks} | Power: ${power}`;
@@ -229,10 +310,8 @@ function updateDisplay(){
     for(const key in buildings){
         totalOwned+=buildings[key].owned;
         const ucKey = key.charAt(0).toUpperCase()+key.slice(1);
-        if(document.getElementById(`owned${ucKey}`))
-            document.getElementById(`owned${ucKey}`).textContent = buildings[key].owned;
-        if(document.getElementById(`cost${ucKey}`))
-            document.getElementById(`cost${ucKey}`).textContent = formatNumber(buildings[key].cost);
+        document.getElementById(`owned${ucKey}`).textContent = buildings[key].owned;
+        document.getElementById(`cost${ucKey}`).textContent = formatNumber(buildings[key].cost);
         const btn = document.querySelector(`.upgrade-item[data-building="${key}"] .buy-upgrade`);
         if(btn) btn.disabled = resourcesTotal < buildings[key].cost;
     }
@@ -240,102 +319,48 @@ function updateDisplay(){
 }
 
 // Passive gain
-function getPassivePerSecond(){
-    let sum = 0;
-    for(const key in buildings) sum += buildings[key].owned * buildings[key].gain;
-    return sum;
-}
+function getPassivePerSecond(){ let sum=0; for(const k in buildings) sum += buildings[k].owned*buildings[k].gain; return sum; }
 function addPassiveResources(){ resourcesTotal += getPassivePerSecond() * 0.1; }
 
 // CPS
-let lastResources = resourcesTotal;
-let lastTime = Date.now();
+let lastResources = resourcesTotal; let lastTime = Date.now();
 function updateCPS(){
-    const now = Date.now();
-    const delta = (now - lastTime) / 1000;
-    const gained = resourcesTotal - lastResources;
-    const cps = gained / delta;
-    lastResources = resourcesTotal;
-    lastTime = now;
+    const now=Date.now(); const delta=(now-lastTime)/1000;
+    const gained=resourcesTotal-lastResources; const cps=gained/delta;
+    lastResources=resourcesTotal; lastTime=now;
     perSecondEl.textContent = `per second: ${formatNumber(cps)}`;
     updateDisplay();
 }
 
 // Intervals
-setInterval(()=>{addPassiveResources();},100);
+setInterval(()=>{ addPassiveResources(); },100);
 setInterval(updateCPS,200);
+setInterval(saveGame,4000); // auto-save every 4s
+window.addEventListener("beforeunload", saveGame);
 
-// Click resource
+// Click
 resourceContainer.addEventListener("click",()=>{
     const choice=resources[Math.floor(Math.random()*resources.length)];
-    resourceImg.src = preloadedImages[choice.name].src;
-    resourceImg.alt = choice.name;
-    resourceName.textContent = choice.name;
-    resourcesTotal += power;
-    actualClicks++;
-    updateDisplay();
+    resourceImg.src=preloadedImages[choice.name].src;
+    resourceImg.alt=choice.name; resourceName.textContent=choice.name;
+    resourcesTotal += power; actualClicks++; updateDisplay();
 });
 
-// Buy upgrades
+// Buy
 document.querySelectorAll('.buy-upgrade').forEach(btn=>{
     btn.addEventListener('click', e=>{
-        const key = e.target.closest('.upgrade-item').dataset.building;
-        const building = buildings[key];
+        const key=e.target.closest('.upgrade-item').dataset.building;
+        const building=buildings[key];
         if(resourcesTotal >= building.cost){
             resourcesTotal -= building.cost;
-            building.owned++;
-            building.cost = Math.floor(building.cost*1.15);
+            building.owned++; building.cost = Math.floor(building.cost*1.15);
             updateDisplay();
         }
     });
 });
 
-// === Save / Load ===
-function saveGame() {
-    const state = { resourcesTotal, power, actualClicks, buildings };
-    localStorage.setItem("duneClickerSave", JSON.stringify(state));
-}
-function loadGame() {
-    const save = localStorage.getItem("duneClickerSave");
-    if (save) {
-        const state = JSON.parse(save);
-        resourcesTotal = state.resourcesTotal || 0;
-        power = state.power || 12;
-        actualClicks = state.actualClicks || 0;
-        if (state.buildings) {
-            for (const key in state.buildings) {
-                if (buildings[key]) {
-                    buildings[key].owned = state.buildings[key].owned;
-                    buildings[key].cost = state.buildings[key].cost;
-                }
-            }
-        }
-        updateDisplay();
-    }
-}
-setInterval(saveGame, 10000);
-window.addEventListener("beforeunload", saveGame);
-loadGame();
-
-// === Leaderboard ===
-async function submitScore() {
-    const playerName = prompt("Enter your name for the leaderboard:");
-    if (!playerName) return;
-    try {
-        const res = await fetch("https://dune-clicker-api.vercel.app/submit", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: playerName, score: Math.floor(resourcesTotal) })
-        });
-        if (res.ok) alert("Score submitted!");
-        else alert("Error submitting score.");
-    } catch (err) {
-        console.error(err);
-        alert("Could not connect to leaderboard API.");
-    }
-}
-
 // Init
+loadGame();
 updateDisplay();
 </script>
 </body>
